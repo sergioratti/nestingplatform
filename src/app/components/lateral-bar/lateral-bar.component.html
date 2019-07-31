@@ -1,0 +1,9 @@
+<div class="list">
+  <ul>
+    <li class="draggable" *ngFor="let item of items">
+      <svg height="100" width="100">
+        <rect [attr.id]="item.id" [attr.width]="item.width" [attr.height]="item.height" stroke="black" fill="red" />
+      </svg>
+    </li>
+  </ul>
+</div>

@@ -1,0 +1,9 @@
+.list{
+    background-color: black;
+    color : white;
+}
+
+.draggable{
+    list-style-type: none;
+    margin: 5px;
+}
