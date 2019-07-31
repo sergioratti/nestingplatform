@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import * as konva from 'konva'
 import {pieces} from './pieces'
+import { DataService } from 'src/app/services/data.service';
 
 @Component({
   selector: 'main-view',
@@ -11,10 +12,41 @@ export class MainViewComponent implements OnInit {
 
   private stage:any;
   private layer:any;
+  private boxes:konva.default.Path[];
+  private scale:number = 0.2;
 
   @ViewChild('container') container:ElementRef;
+  @HostListener('window:keyup', ['$event'])
+  keyEvent(event: KeyboardEvent) {
+    
+    if(event.shiftKey === true && event.code === 'KeyN'){
+      var params ={
+        kerf:5, 
+        guillotine:1, 
+        sheetWidth:3050, 
+        sheetHeight:1600,
+        time:30,
+        pieces:this.boxes.map((box,index)=>{ var bounds = box.getClientRect({});return {type:1,name:`P${index}`, points:[[0,0],[bounds.width/this.scale,bounds.height/this.scale]]};})
+       }
 
-  constructor() { }
+      this.data.nest(params).toPromise()
+      .then(results=>{
+        console.log(results);
+        if(Array.isArray(results['pieces'])){
+          results['pieces'].forEach(r=>{
+            var box = this.boxes[Number(r.name.replace('P',''))];
+            if(r.rot === 90)
+              box.rotate(r.rot);
+          });
+        }
+      })
+    }
+      
+  }
+
+  constructor(private data:DataService) {
+    this.boxes = [];
+  }
 
   ngOnInit() {
     var self = this;
@@ -37,7 +69,8 @@ export class MainViewComponent implements OnInit {
           strokeWidth: 4,
           draggable: true,
           data:p.svg,
-          scale:{x:0.2,y:-0.2}
+          scale:{x:self.scale,y:-self.scale},
+          name:`${p.id}`
         });
 
         box.on('dragstart', function() {
@@ -53,7 +86,7 @@ export class MainViewComponent implements OnInit {
          * and dbltap to remove box for mobile app
          */
         box.on('dblclick dbltap', function() {
-          this.destroy();
+          //this.destroy();
           self.layer.draw();
         });
 
@@ -64,6 +97,7 @@ export class MainViewComponent implements OnInit {
           document.body.style.cursor = 'default';
         });
 
+        this.boxes.push(box);
         this.layer.add(box);
       });
 
