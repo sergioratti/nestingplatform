@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
-import * as konva from 'konva'
+import {PaperScope,Path,Point as PaperPoint,Color as PaperColor, CompoundPath} from 'paper'
 import {pieces} from './pieces'
 import { DataService } from 'src/app/services/data.service';
 
@@ -10,10 +10,14 @@ import { DataService } from 'src/app/services/data.service';
 })
 export class MainViewComponent implements OnInit {
 
-  private stage:any;
-  private layer:any;
-  private boxes:konva.default.Path[];
+  private boxes:any[];
   private scale:number = 0.2;
+  private sheetWidth:number = 3050;
+  private scope:PaperScope;
+  private dragging:boolean;
+  private selectedPath:CompoundPath;
+  private lastPoint:PaperPoint;
+  
 
   @ViewChild('container') container:ElementRef;
   @HostListener('window:keyup', ['$event'])
@@ -26,83 +30,95 @@ export class MainViewComponent implements OnInit {
         sheetWidth:3050, 
         sheetHeight:1600,
         time:30,
-        pieces:this.boxes.map((box,index)=>{ var bounds = box.getClientRect({});return {type:1,name:`P${index}`, points:[[0,0],[bounds.width/this.scale,bounds.height/this.scale]]};})
+        pieces:this.boxes.map((box:CompoundPath,index)=>{ var bounds = box.bounds;return {type:1,name:`P${index}`, points:[[0,0],[bounds.width,bounds.height]]};})
        }
 
       this.data.nest(params).toPromise()
       .then(results=>{
         console.log(results);
         if(Array.isArray(results['pieces'])){
-          results['pieces'].forEach(r=>{
-            var box = this.boxes[Number(r.name.replace('P',''))];
-            if(r.rot === 90)
-              box.rotate(r.rot);
-          });
+          this.updatePositions(results);        
         }
       })
     }
       
   }
 
+
   constructor(private data:DataService) {
     this.boxes = [];
+    this.dragging = false ;
+    this.selectedPath = null;
+    this.lastPoint = null;
   }
 
   ngOnInit() {
     var self = this;
-    console.log(this.container);
-    this.stage = new konva.default.Stage({
-      container: 'container2',
-      width: window.innerWidth,
-      height: window.innerHeight
-    })
-    this.layer = new konva.default.Layer();
-
+    this.scope = new PaperScope();
+    this.scope.setup('container2');
+    this.scope.view.scaling = new PaperPoint(this.scale,-this.scale);
+    
     var colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
 
       pieces.forEach((p,i)=>{
-        var box = new konva.default.Path({
-          x: i * 30 + 50,
-          y: i * 18 + 500,
-          fill: colors[i],
-          stroke: 'black',
-          strokeWidth: 4,
-          draggable: true,
-          data:p.svg,
-          scale:{x:self.scale,y:-self.scale},
-          name:`${p.id}`
-        });
 
-        box.on('dragstart', function() {
-          // this.moveToTop();
-          this.layer.draw();
-        }.bind(this));
+        var box = new CompoundPath(p.svg);
+        box.name = `P${p.id}`;
+        box.fillColor = new PaperColor(colors[i]);
+        box.strokeColor = new PaperColor('black');
+        
 
-        box.on('dragmove', function() {
-          document.body.style.cursor = 'pointer';
-        });
-        /*
-         * dblclick to remove box for desktop app
-         * and dbltap to remove box for mobile app
-         */
-        box.on('dblclick dbltap', function() {
-          //this.destroy();
-          self.layer.draw();
-        });
-
-        box.on('mouseover', function() {
-          document.body.style.cursor = 'pointer';
-        });
-        box.on('mouseout', function() {
-          document.body.style.cursor = 'default';
-        });
+        box.onMouseDrag = function(event) {
+          this.position.x += event.delta.x;
+          this.position.y += event.delta.y;
+      }
+        
 
         this.boxes.push(box);
-        this.layer.add(box);
+
       });
 
       // add the layer to the stage
-      this.stage.add(this.layer);
+  }
+
+  public updatePositions(res:any){
+    
+      console.log(JSON.stringify(res));
+      var dispositions:{name:string,sheet:number,x:number,y:number,rotation:number}[] = [] ;
+      (res.pieces||[]).forEach(p=>{
+           dispositions.push({name:p.name,sheet:p.sheet,x:p.x,y:p.y,rotation:p.rot});
+      });
+      
+      var dispo = {sheets:res['sheets'],disposition:dispositions};
+
+       this.boxes.forEach((bo:CompoundPath)=>{
+         var curDispo = dispo.disposition.filter(d=>{return d.name === bo.name });
+         if(curDispo.length === 0)
+           return ;
+
+         if(curDispo[0].x === undefined || curDispo[0].y === undefined)
+           return ;
+         
+         var newBLPoint:number[] = [curDispo[0].x,curDispo[0].y] ;
+         var bounds = bo.bounds;
+         var minX = Math.min(bounds.x,bounds.x+bounds.width);
+         var minY = Math.min(bounds.y,bounds.y+bounds.height);
+         var transX = (newBLPoint[0] + (curDispo[0].sheet-1)*(this.sheetWidth+10)) - minX;
+         var transY = newBLPoint[1] - minY;
+         // var transY = (this.sheetHeight - curDispo[0].y) - (bounds.y+bounds.height) ;
+         bo.translate(new PaperPoint(transX,transY));
+         
+         var originalPoint:any;
+         if(curDispo[0].rotation > 0){
+
+           var minP = {x:bounds.x,y:bounds.y} ;
+           //console.log(JSON.stringify(pOri));
+           //rotate around the application point
+           bo.rotate(-curDispo[0].rotation,new PaperPoint(curDispo[0].x,curDispo[0].y));
+          //  bo.translate(new PaperPoint({x:curDispo[0].x-minP.x + (curDispo[0].sheet-1)*(this.sheetWidth*this.scale+10),y:curDispo[0].y-minP.y}));
+         }
+       })
+      //  this.sheets = dispo.sheets;
   }
 
 }
