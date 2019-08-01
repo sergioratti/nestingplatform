@@ -1,0 +1,25 @@
+<form>
+  <div class="form-row toprow">
+    <div class="col-auto">
+      <input class="form-control" type="number" name="kerf" [(ngModel)]="kerf" />
+    </div>
+    <div class="col-auto">
+      <select class="form-control" name="guillotine" [(ngModel)]="guillotine">
+        <option [ngValue]="0">No</option>
+        <option [ngValue]="1">Yes</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <input class="form-control" type="number" name="sheetWidth" [(ngModel)]="sheetWidth" />
+    </div>
+    <div class="col-auto">
+      <input class="form-control" type="number" name="sheetHeight" [(ngModel)]="sheetHeight" />
+    </div>
+    <div class="col-auto">
+      <input class="form-control" type="number" name="time" [(ngModel)]="time" />
+    </div>
+    <div class="col-auto">
+      <button class="form-control" (click)="onClick()">Nest</button>
+    </div>
+  </div>
+</form>

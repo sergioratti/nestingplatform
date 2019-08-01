@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient,HttpRequest } from '@angular/common/http';
+import {pieces} from './pieces'
+import {sheets} from './sheets'
 
 @Injectable({
   providedIn: 'root'
@@ -26,4 +28,28 @@ export class DataService {
     //   }
     return this.http.post(this.apiRoot + `/nesting/nest`,data,this.httpOptions);
   }
+
+  getPieces(){
+    return pieces;
+  }
+
+  getSheets(params:{ids:number[],type_id:number}):Promise<any>{
+
+    var sheetsDB = [];
+    if(params.ids){
+      sheetsDB = sheets.filter(item=>{return params.ids.indexOf(item.id)>-1});
+    }
+    else if(params.type_id){
+      sheetsDB = sheets.filter(item=>{return item.Type.id === params.type_id});
+    }
+    else
+      sheetsDB = [];
+    
+
+    return Promise.resolve(sheets)
+    
+    
+  }
+
+
 }

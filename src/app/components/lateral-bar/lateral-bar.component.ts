@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {pieces} from '../main-view/pieces'
+import {pieces} from '../../services/pieces'
 
 @Component({
   selector: 'lateral-bar',
