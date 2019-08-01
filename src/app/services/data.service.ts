@@ -33,7 +33,7 @@ export class DataService {
     return pieces;
   }
 
-  getSheets(params:{ids:number[],type_id:number}):Promise<any>{
+  getSheets(params:{ids?:number[],type_id?:number}):Promise<any>{
 
     var sheetsDB = [];
     if(params.ids){
@@ -43,10 +43,10 @@ export class DataService {
       sheetsDB = sheets.filter(item=>{return item.Type.id === params.type_id});
     }
     else
-      sheetsDB = [];
+      sheetsDB = sheets;
     
 
-    return Promise.resolve(sheets)
+    return Promise.resolve(sheetsDB)
     
     
   }

@@ -5,15 +5,13 @@
     </div>
     <div class="col-auto">
       <select class="form-control" name="guillotine" [(ngModel)]="guillotine">
-        <option [ngValue]="0">No</option>
-        <option [ngValue]="1">Yes</option>
+        <option *ngFor="let gv of guillotineValues" [attr.value]="gv.value" [ngValue]="gv.value">{{gv.label}}</option>
       </select>
     </div>
     <div class="col-auto">
-      <input class="form-control" type="number" name="sheetWidth" [(ngModel)]="sheetWidth" />
-    </div>
-    <div class="col-auto">
-      <input class="form-control" type="number" name="sheetHeight" [(ngModel)]="sheetHeight" />
+      <select class="form-control" name="guillotine" [(ngModel)]="selectedType">
+        <option *ngFor="let type of types" [ngValue]="type.id">{{getTypeDescription(type)}}</option>
+      </select>
     </div>
     <div class="col-auto">
       <input class="form-control" type="number" name="time" [(ngModel)]="time" />

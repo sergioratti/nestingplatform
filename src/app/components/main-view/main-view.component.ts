@@ -85,6 +85,7 @@ export class MainViewComponent implements OnInit {
         box.name = `P${p.id}`;
         box.fillColor = new PaperColor(colors[i]);
         box.strokeColor = new PaperColor('black');
+        box.strokeWidth = 2;
         
 
         box.onMouseDrag = function(event) {
@@ -115,7 +116,7 @@ export class MainViewComponent implements OnInit {
       });
       
       for(var i=0;i<dispo.sheets;i++){
-        var p = new Path.Rectangle(new PaperPoint(i*(this.sheetWidth+10),0),new PaperPoint((i+1)*(this.sheetWidth+10),this.sheetHeight))
+        var p = new Path.Rectangle(new PaperPoint(i*(this.sheetsParams.sheetWidth+10),0),new PaperPoint((i+1)*(this.sheetsParams.sheetWidth+10),this.sheetsParams.sheetHeight))
         p.strokeWidth = 2;
         p.strokeColor = new PaperColor('black');
         this.sheets.push(p);
